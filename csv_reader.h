@@ -6,22 +6,22 @@
 #include <vector>
 #include <iomanip>
 
-const char DELIMETER = ';';
+
 const std::string EMPTY_ROW = "-";
 const std::string PATH = "clear_uploaded_file.csv";
 
-// Структура для хранения данных таблицы и её метаданных
+// Struct with data from csv
 struct Table {
 public:
     std::vector<std::vector<std::string>> table;
     std::vector<std::string> column_names;
     std::vector<std::string> column_types;
     bool isTableRead = false;
+    char DELIMETER = ';';
 
     Table(const std::string & filename)
     {
         readCSV(filename);
-        determineColumnTypes(); // Определение типов данных
     }
     Table()
     {
@@ -29,12 +29,38 @@ public:
     }
 
 public:
-    // Определение типов данных в колонках
+    bool
+        isEmpty()
+    {
+        return table.empty();
+    }
+
+    void
+        setDelimeter(std::ifstream & csv_file)
+    {    
+        char character = 'a';
+        while(csv_file.get(character))
+            {
+                if(character == ',')
+                {   
+                    DELIMETER = ',';
+                    break;
+                }
+                if(character == ';')
+                {
+                    DELIMETER = ';';
+                    break;
+                }
+            }
+    }
+
+    // Determinating column types and column names in table from file
     void determineColumnTypes() {
         for (const auto& column_data : table) {
             bool is_numeric = true;
             for (const std::string& value : column_data) {
                 if (!isNumber(value)) {
+                    column_names.push_back(value);
                     is_numeric = false;
                     break;
                 }
@@ -43,19 +69,19 @@ public:
         }
     }
 
-    // Вывод таблицы в консоль
+    // Г‚Г»ГўГ®Г¤ ГІГ ГЎГ«ГЁГ¶Г» Гў ГЄГ®Г­Г±Г®Г«Гј
     void printTable() {
         if (isTableRead) {
             size_t numRows = table[0].size();
 
-            // Выводим значения с фиксированной шириной столбца
+            // Г‚Г»ГўГ®Г¤ГЁГ¬ Г§Г­Г Г·ГҐГ­ГЁГї Г± ГґГЁГЄГ±ГЁГ°Г®ГўГ Г­Г­Г®Г© ГёГЁГ°ГЁГ­Г®Г© Г±ГІГ®Г«ГЎГ¶Г 
             for (size_t i = 0; i < numRows; i++) {
                 for (size_t j = 0; j < table.size(); j++) {
                     if (i < table[j].size()) {
                         std::cout << std::setw(20) << table[j][i];
                     }
                     else {
-                        std::cout << std::setw(20) << " "; // Заполняем пустыми значениями, если колонка короче
+                        std::cout << std::setw(20) << " "; // Г‡Г ГЇГ®Г«Г­ГїГҐГ¬ ГЇГіГ±ГІГ»Г¬ГЁ Г§Г­Г Г·ГҐГ­ГЁГїГ¬ГЁ, ГҐГ±Г«ГЁ ГЄГ®Г«Г®Г­ГЄГ  ГЄГ®Г°Г®Г·ГҐ
                     }
                 }
                 std::cout << std::endl;
@@ -66,7 +92,7 @@ public:
         }
     }
 
-    // Чтение CSV файла
+    // Г—ГІГҐГ­ГЁГҐ CSV ГґГ Г©Г«Г 
     void readCSV(const std::string& filename) {
         char delimiter = ';';
 
@@ -74,7 +100,7 @@ public:
 
         if (!csv_file.is_open()) {
             std::cout << "File is not opened." << std::endl;
-            return; // Возвращаемся в случае ошибки открытия файла
+            return; // Г‚Г®Г§ГўГ°Г Г№Г ГҐГ¬Г±Гї Гў Г±Г«ГіГ·Г ГҐ Г®ГёГЁГЎГЄГЁ Г®ГІГЄГ°Г»ГІГЁГї ГґГ Г©Г«Г 
         }
 
         std::string header;
@@ -83,7 +109,7 @@ public:
         std::string column_name;
 
         while (std::getline(header_stream, column_name, delimiter)) {
-            table.push_back({ column_name }); // Создаём вектор с одним элементом (названием колонки)
+            table.push_back({ column_name }); // Г‘Г®Г§Г¤Г ВёГ¬ ГўГҐГЄГІГ®Г° Г± Г®Г¤Г­ГЁГ¬ ГЅГ«ГҐГ¬ГҐГ­ГІГ®Г¬ (Г­Г Г§ГўГ Г­ГЁГҐГ¬ ГЄГ®Г«Г®Г­ГЄГЁ)
         }
 
         std::string line;
@@ -96,10 +122,10 @@ public:
 
             while (std::getline(columns_stream, column_name, delimiter) && (counter != size)) {
                 if (column_name.empty()) {
-                    table[counter].push_back(EMPTY_ROW); // Добавляем константу - если значение в таблице отсутствует
+                    table[counter].push_back(EMPTY_ROW); // Г„Г®ГЎГ ГўГ«ГїГҐГ¬ ГЄГ®Г­Г±ГІГ Г­ГІГі - ГҐГ±Г«ГЁ Г§Г­Г Г·ГҐГ­ГЁГҐ Гў ГІГ ГЎГ«ГЁГ¶ГҐ Г®ГІГ±ГіГІГ±ГІГўГіГҐГІ
                 }
                 else {
-                    table[counter].push_back(column_name); // Добавляем значение в соответствующую колонку
+                    table[counter].push_back(column_name); // Г„Г®ГЎГ ГўГ«ГїГҐГ¬ Г§Г­Г Г·ГҐГ­ГЁГҐ Гў Г±Г®Г®ГІГўГҐГІГ±ГІГўГіГѕГ№ГіГѕ ГЄГ®Г«Г®Г­ГЄГі
                 }
                 counter++;
             }
@@ -109,7 +135,7 @@ public:
         csv_file.close();
     }
 
-    // Очистка таблицы
+    // ГЋГ·ГЁГ±ГІГЄГ  ГІГ ГЎГ«ГЁГ¶Г»
     void clearTable() {
         table.clear();
         column_names.clear();
@@ -117,7 +143,7 @@ public:
         isTableRead = false;
     }
 
-    // Получение метаданных о структуре данных
+    // ГЏГ®Г«ГіГ·ГҐГ­ГЁГҐ Г¬ГҐГІГ Г¤Г Г­Г­Г»Гµ Г® Г±ГІГ°ГіГЄГІГіГ°ГҐ Г¤Г Г­Г­Г»Гµ
     std::vector<std::string> getColumnNames() const {
         return column_names;
     }
@@ -131,8 +157,8 @@ private:
         std::istringstream iss(s);
         double number;
         iss >> number;
-        // Если преобразование прошло успешно и не осталось непрочитанных символов,
-        // то считаем строку числом.
+        // Г…Г±Г«ГЁ ГЇГ°ГҐГ®ГЎГ°Г Г§Г®ГўГ Г­ГЁГҐ ГЇГ°Г®ГёГ«Г® ГіГ±ГЇГҐГёГ­Г® ГЁ Г­ГҐ Г®Г±ГІГ Г«Г®Г±Гј Г­ГҐГЇГ°Г®Г·ГЁГІГ Г­Г­Г»Гµ Г±ГЁГ¬ГўГ®Г«Г®Гў,
+        // ГІГ® Г±Г·ГЁГІГ ГҐГ¬ Г±ГІГ°Г®ГЄГі Г·ГЁГ±Г«Г®Г¬.
         return !iss.fail() && iss.eof();
     }
 };
@@ -140,8 +166,8 @@ private:
 int main__() {
     Table current(PATH);
     current.readCSV(PATH);
-    current.determineColumnTypes(); // Определение типов данных
+    current.determineColumnTypes(); // ГЋГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГІГЁГЇГ®Гў Г¤Г Г­Г­Г»Гµ
     current.printTable();
-    //current.clearTable(); // Очистка данных после использования
+    //current.clearTable(); // ГЋГ·ГЁГ±ГІГЄГ  Г¤Г Г­Г­Г»Гµ ГЇГ®Г±Г«ГҐ ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ Г­ГЁГї
     return 0;
 }
