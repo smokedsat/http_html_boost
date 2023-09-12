@@ -75,7 +75,7 @@ public:
     void 
         printTable() 
     {
-        if (!table.isEmpty()) {
+        if (!isEmpty()) {
             size_t numRows = table[0].size();
 
             // std::cout data with fixed width of row
@@ -117,7 +117,7 @@ public:
         std::istringstream header_stream(header);
         std::string column_name;
 
-        while (std::getline(header_stream, column_name, delimiter)) {
+        while (std::getline(header_stream, column_name, DELIMETER)) {
             table.push_back({ column_name }); // Creating vectors with first element = column name
         }
 
