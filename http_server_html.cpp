@@ -96,7 +96,6 @@ private:
     }
 
 
-    // Determine what needs to be done with the request message.
     void
         process_request()
     {
@@ -131,19 +130,14 @@ private:
                 response_.prepare_payload();
                 create_response();
             }
-            //else if(request_.target() == "/select/" + row_name){ }
+          
 
             break;
         case http::verb::post:
-            // Waiting for file with name "upload-file"
-           // Ожидаем, что файл будет отправлен в форме с именем "upload-file"
             if (request_.body().size() > 0)
             {
-                // Получаем данные файла
                 std::string file_data = beast::buffers_to_string(request_.body().data());
 
-                // Здесь вы можете сохранить file_data в файл
-                // Например, сохранить его как .csv файл
                 const std::string filename = "uploaded_file.csv";
 
                 std::ofstream outfile(filename);
@@ -167,8 +161,6 @@ private:
             }
             break;
         default:
-            // We return responses indicating an error if
-            // we do not recognize the request method.
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
             beast::ostream(response_.body())
@@ -181,7 +173,6 @@ private:
         write_response();
     }
 
-    // Construct a response message based on the program state.
     void
         create_response()
     {
@@ -312,10 +303,10 @@ private:
             html << "<!DOCTYPE html>\n";
             html << "<html>\n";
             html << "<head>\n";
-            html << "    <title>Результаты из таблицы</title>\n";
+            html << "    <title>ГђГҐГ§ГіГ«ГјГІГ ГІГ» ГЁГ§ ГІГ ГЎГ«ГЁГ¶Г»</title>\n";
             html << "</head>\n";
             html << "<body>\n";
-            html << "    <h1>Данные из таблицы</h1>\n";
+            html << "    <h1>Г„Г Г­Г­Г»ГҐ ГЁГ§ ГІГ ГЎГ«ГЁГ¶Г»</h1>\n";
             html << "    <table>\n";
             html << "        <tr>\n";
 
@@ -329,12 +320,11 @@ private:
 
             html << "        </tr>\n";
 
-            // Вставляем фактические данные из таблицы
             for (const auto& rows : table.table) {
                 html << "        <tr>\n";
                 for (auto i = 0; i < rows.size(); i++) {
                     if (!rows[i].empty()) { html << "            <td>" << rows[i] << "</td>\n"; }
-                    else {html << "            <td></td>\n"; }// Пустая ячейка, если нет данных
+                    else {html << "            <td></td>\n"; }
                 }
                 html << "        </tr>\n";
             }
@@ -381,28 +371,23 @@ void erase_4_1_lines(const std::string& filename)
     std::vector<std::string> lines;
     std::string line;
 
-    // Считываем строки из файла и сохраняем их в векторе
     while (std::getline(inputFile, line)) {
         lines.push_back(line);
     }
 
-    // Проверяем, что в файле есть хотя бы 4 строки
     if (lines.size() < 4) {
         std::cerr << "File does not contain enough lines." << std::endl;
         return;
     }
 
-    // Удаляем первые три строки
     for(auto i =0 ; i <=3 ; i++)
     {
         lines.erase(lines.begin()); 
     }
 
-    // Удаляем одну последнюю 
     lines.pop_back();
    
 
-    // Записываем очищенные строки в выходной файл
     for (const std::string& outputLine : lines) {
         outputFile << outputLine << '\n';
     }
