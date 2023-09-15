@@ -24,7 +24,8 @@ const unsigned int PORT = 7777;
 const std::string IP_ADDRESS = "127.0.0.1";
 
 
-class http_connection : public std::enable_shared_from_this<http_connection>
+class 
+    http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
     http_connection(tcp::socket socket, std::shared_ptr<Database> & sptr_database)
@@ -33,7 +34,8 @@ public:
         this->sptr_database = sptr_database;
     }
 
-    void start()
+    void 
+        start()
     {
         read_request();
         check_deadline();
@@ -49,7 +51,8 @@ private:
     std::shared_ptr<Database> sptr_database;
 
 private:
-    void read_request()
+    void 
+        read_request()
     {
         auto self = shared_from_this();
                 
@@ -65,7 +68,8 @@ private:
             });
     }
 
-    void write_response()
+    void 
+        write_response()
     {
         auto self = shared_from_this();
 
@@ -81,7 +85,8 @@ private:
             });
     }
 
-    void check_deadline()
+    void 
+        check_deadline()
     {
         auto self = shared_from_this();
 
@@ -95,7 +100,8 @@ private:
             });
     }
 
-    void process_request()
+    void 
+        process_request()
     {
         response_.version(request_.version());
         response_.keep_alive(false);
@@ -254,7 +260,8 @@ private:
         write_response();
     }
     
-    void create_response()
+    void 
+        create_response()
     {
         if (request_.target().find("/main") == 0)
         {
@@ -413,12 +420,14 @@ private:
     }
 
     // friend 
-    friend void lines_eraser(const std::string& filename);
+    friend void 
+        lines_eraser(const std::string& filename);
 };
 
 
 
-void http_server(tcp::acceptor& acceptor, tcp::socket& socket, std::shared_ptr<Database> & sptr_database)
+void 
+    http_server(tcp::acceptor& acceptor, tcp::socket& socket, std::shared_ptr<Database> & sptr_database)
 {
     acceptor.async_accept(socket,
         [&](beast::error_code ec)
@@ -429,9 +438,9 @@ void http_server(tcp::acceptor& acceptor, tcp::socket& socket, std::shared_ptr<D
         });
 }
 
-#include <msi.h>
+//#include <msi.h>
 // And just to make things link:
-#pragma comment(lib, "msi.lib")
+//#pragma comment(lib, "msi.lib")
 
 int main(int argc, char* argv[])
 {
