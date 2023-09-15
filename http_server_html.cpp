@@ -5,14 +5,15 @@
 #include <boost/algorithm/string.hpp>
 
 #include <cstdlib>
-
 #include <memory>
-#include <string>
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <filesystem>
+
 #include "csv_reader.h"
+#include "lines_eraser.h"
+#include "DynamicHTML.h"
+#include "database.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -20,31 +21,12 @@ namespace net = boost::asio;
 using tcp = boost::asio::ip::tcp;
 
 const unsigned int PORT = 7777;
+const std::string IP_ADDRESS = "127.0.0.1";
 
-// Delete system webkit data from file. It is 4 lines at begin and 1 line at end. Need to delete because its a trash
-void erase_4_1_lines(const std::string& filename);
-
-struct Database : public std::enable_shared_from_this<Database>
-{
-    std::vector<std::string> results;
-    //std::vector<std::string> file_names;
-    std::vector<Table> tables;
-
-    Table curr_table;
-
-    size_t countOfTables = 0;
-    int currentTableId = 0;
-};
 
 class http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
-    http_connection(tcp::socket socket)
-        : socket_(std::move(socket))
-    {
-       
-    }
-
     http_connection(tcp::socket socket, std::shared_ptr<Database> & sptr_database)
         : socket_(std::move(socket))
     {
@@ -69,7 +51,6 @@ private:
 private:
     void read_request()
     {
-        
         auto self = shared_from_this();
                 
         http::async_read(
@@ -95,9 +76,22 @@ private:
             response_,
             [self](beast::error_code ec, std::size_t)
             {
-                
                 self->socket_.shutdown(tcp::socket::shutdown_send, ec);
                 self->deadline_.cancel();
+            });
+    }
+
+    void check_deadline()
+    {
+        auto self = shared_from_this();
+
+        deadline_.async_wait(
+            [self](beast::error_code ec)
+            {
+                if (!ec)
+                {
+                    self->socket_.close(ec);
+                }
             });
     }
 
@@ -144,7 +138,7 @@ private:
                         }
                         else
                         {
-                            beast::ostream(response_.body()) 
+                            beast::ostream(response_.body())
                                 << "Count of tables is lower than you trying to change to.\n "
                                 << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n"
                                 << "<form action=\"http://127.0.0.1:"
@@ -200,10 +194,10 @@ private:
                 create_response();
             }
             else if (request_.target().find("/showtable") == 0)
-            { 
+            {
                 response_.result(http::status::ok);
                 response_.set(http::field::server, "Get request");
-                
+
                 response_.prepare_payload();
                 create_response();
             }
@@ -226,13 +220,13 @@ private:
                 outfile << file_data;
                 outfile.close();
 
-                erase_4_1_lines(filename);
+                lines_eraser(filename);
                 std::string newfilename = "clear_" + filename;
                 sptr_database->curr_table.readCSV(newfilename);
                 sptr_database->curr_table.setTableFilename(filename);
                 sptr_database->tables.emplace_back(sptr_database->curr_table);
                 sptr_database->curr_table.clearTable();
-               
+
                 sptr_database->countOfTables = sptr_database->tables.size();
 
                 response_.result(http::status::ok);
@@ -259,7 +253,7 @@ private:
         }
         write_response();
     }
-
+    
     void create_response()
     {
         if (request_.target().find("/main") == 0)
@@ -284,17 +278,17 @@ private:
                     beast::ostream(response_.body()) << sptr_database->tables[count].table_filename;
                     beast::ostream(response_.body()) << " </a></li>\n";
                 }
+                beast::ostream(response_.body()) << "<br>\n";
             }
             if (!sptr_database->tables.empty())
             {
                 // Button showtable
                 beast::ostream(response_.body())
-                    << "<ul><form action=\"http://127.0.0.1:" << std::to_string(PORT)
+                    << "<form action=\"http://127.0.0.1:" << std::to_string(PORT)
                     << "/showtable/\" method=\"get\">\n" // Используем метод GET
                     << "<li><b>Enter Table Number:   </b> <input type=\"number\" name=\"tableNumber\">\n"
                     << "    <input type=\"submit\" value=\"Show Table\"></li>\n"
-                    << "</form>\n"
-                    << "</ul>\n";
+                    << "</form>\n";
 
                 // Button search 
                 beast::ostream(response_.body())
@@ -353,7 +347,7 @@ private:
         else if (request_.target().find("/search") == 0)
         {
             response_.set(http::field::content_type, "text/html");
-            beast::ostream(response_.body()) << generateDynamicResponse(sptr_database->results);
+            beast::ostream(response_.body()) << generateDynamicResponse(sptr_database->results,IP_ADDRESS, PORT);
         }
         else if (request_.target().find("/showtable") == 0)
         {
@@ -370,24 +364,35 @@ private:
                 {
                     target_size = 24;
                 }
-                else if(target_size > 11)
+                else if (target_size > 11)
                 {
                     target_size = 11;
                 }
-                
+
                 std::string target = request_.target().substr(target_size);
                 size_t table_id = std::stoi(target);
 
                 if (table_id <= sptr_database->countOfTables)
                 {
-                    sptr_database->currentTableId = table_id;
-                    beast::ostream(response_.body()) << generateDynamicResponse(sptr_database->tables[sptr_database->currentTableId]);
+                    if (sptr_database->countOfTables == 1)
+                    {
+                        table_id = 0;
+                        sptr_database->currentTableId = table_id;
+                    }
+                    if (table_id >= sptr_database->tables.size()) 
+                    {
+                        beast::ostream(response_.body()) << "Table with that big number was not found\n";
+                    }
+                    else
+                    {
+                        beast::ostream(response_.body()) << generateDynamicResponse(sptr_database->tables[table_id], IP_ADDRESS, PORT);
+                    }
                 }
                 else
                 {
                     sptr_database->currentTableId = 0;
                     // Изменить на generateDynamicEmptyResponse(std::string & resp)
-                    beast::ostream(response_.body()) << generateDynamicResponse(sptr_database->tables[sptr_database->currentTableId]);
+                    beast::ostream(response_.body()) << "Table with that number was not found.\n";
                 }
             }
             else
@@ -407,163 +412,11 @@ private:
         }
     }
 
-    
-
-    void check_deadline()
-    {
-        auto self = shared_from_this();
-        
-        deadline_.async_wait(
-            [self](beast::error_code ec)
-            {
-                if (!ec)
-                {
-                    self->socket_.close(ec);
-                }
-            });
-    }
-    
-    // HTML with vector<std::string> result
-    std::string generateDynamicResponse(const std::vector<std::string>& data)
-    {
-        std::stringstream html;
-        html << "<!DOCTYPE html>\n";
-        html << "<html>\n";
-        html << "<head>\n";
-        html << "    <title>RESULTS</title>\n";
-        html << "</head>\n";
-        html << "<body>\n";
-        html << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
-        html << "<form action=\"http://127.0.0.1:";
-        html << std::to_string(PORT);
-        html << "\">";
-        if (data.empty()) 
-        {
-            html << "<h1>table is empty</h1>\n";
-        }
-        else 
-        {
-            html << "<h1>RESULTS</h1>\n";
-            html << "<table>\n";
-            html << "<tr>\n";
-
-            // Создаем ячейки таблицы и заполняем их значениями из вектора
-            for (const std::string& value : data) {
-                html << "<td>" << value << "</td>\n";
-            }
-
-            html << "</tr>\n";
-            html << "</table>\n";
-        }
-
-        html << "</body>\n";
-        html << "</html>\n";
-
-        return html.str();
-    }
-
-    // HTML with result from Table
-    std::string generateDynamicResponse(const Table& table)
-    {
-        if (!table.table.empty())
-        {
-            std::stringstream html;
-            html << "<!DOCTYPE html>\n";
-            html << "<html>\n";
-            html << "<head>\n";
-            html << "    <title>          ";
-            html << table.table_filename;
-            html << "           </title>\n";
-            html << "</head>\n";
-            html << "<body>\n";
-            html << "    <h1>                 </h1>\n";
-            html << "    <table>\n";
-            html << "        <tr>\n";
-
-            
-            // Output column names at 1 string. Something wrong
-            /*
-            for (const std::string& column_name : table.column_names) {
-                html << "            <th>" << column_name << "</th>\n";
-            }*/
-
-            html << "        </tr>\n";
-
-            for (const auto& rows : table.table) {
-                html << "        <tr>\n";
-                for (auto i = 0; i < rows.size(); i++) {
-                    if (!rows[i].empty() && (i != 0)) 
-                    { 
-                        html << "            <td>" << rows[i] << "</td>\n"; 
-                    }
-                    else if (!rows[i].empty() && (i == 0))
-                    {
-                        html << "            <td><b>" << rows[i] << "</b></td>\n";
-                    }
-                    else 
-                    { 
-                        html << "            <td></td>\n"; 
-                    }
-                }
-                html << "        </tr>\n";
-            }
-
-            html << "    </table>\n";
-            html << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
-            html << "<form action=\"http://127.0.0.1:";
-            html << std::to_string(PORT);
-            html << "\">";
-            html << "</body>\n";
-            html << "</html>\n";
-
-            return html.str();
-        }
-        else
-        {
-            
-            return "";
-        }
-    }
+    // friend 
+    friend void lines_eraser(const std::string& filename);
 };
 
-void erase_4_1_lines(const std::string& filename)
-{
-    std::ifstream inputFile(filename);
-    std::ofstream outputFile("clear_" + filename);
 
-    if (!inputFile.is_open() || !outputFile.is_open()) {
-        std::cerr << "Failed to open file to erase 4_1_lines." << std::endl;
-        return;
-    }
-
-    std::vector<std::string> lines;
-    std::string line;
-
-    while (std::getline(inputFile, line)) {
-        lines.push_back(line);
-    }
-
-    if (lines.size() < 4) {
-        std::cerr << "File does not contain enough lines." << std::endl;
-        return;
-    }
-
-    for (auto i = 0; i <= 3; i++)
-    {
-        lines.erase(lines.begin());
-    }
-
-    lines.pop_back();
-
-    for (const std::string& outputLine : lines) {
-        outputFile << outputLine << '\n';
-    }
-
-    inputFile.close();
-    outputFile.close();
-
-    std::filesystem::remove(filename);
-}
 
 void http_server(tcp::acceptor& acceptor, tcp::socket& socket, std::shared_ptr<Database> & sptr_database)
 {
@@ -623,3 +476,5 @@ int main(int argc, char* argv[])
     }
 }
 
+
+                                                                                                               
