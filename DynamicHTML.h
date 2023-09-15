@@ -6,7 +6,8 @@
 #include <string>
 
 // HTML with vector<std::string> result
-std::string generateDynamicResponse(const std::vector<std::string>& data, const std::string & ip_address, const int & port)
+std::string 
+    generateDynamicResponse(const std::vector<std::string>& data, const std::string & ip_address, const int & port)
 {
     std::stringstream html;
     html << "<!DOCTYPE html>\n";
@@ -47,7 +48,8 @@ std::string generateDynamicResponse(const std::vector<std::string>& data, const 
 }
 
 // HTML with result from Table
-std::string generateDynamicResponse(const Table& table, const std::string& ip_address, const int& port)
+std::string 
+    generateDynamicResponse(const Table& table, const std::string& ip_address, const int& port)
 {
     if (!table.table.empty())
     {
