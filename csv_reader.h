@@ -16,17 +16,13 @@ public:
     std::vector<std::vector<std::string>> table;
     std::vector<std::string> column_names;
     std::vector<std::string> column_types;
-    bool isTableRead = false;
     char DELIMETER = ';';
 
-    Table(const std::string & filename)
+        Table(const std::string & filename)
     {
         readCSV(filename);
     }
-    Table()
-    {
-
-    }
+    Table(){ }
 
 public:
     bool
