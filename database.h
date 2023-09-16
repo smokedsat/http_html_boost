@@ -7,11 +7,13 @@
 
 struct Database : public std::enable_shared_from_this<Database>
 {
+    Database();
+
     std::vector<std::string> results;
     std::vector<Table> tables;
 
     Table curr_table;
 
-    size_t countOfTables = 0;
-    int currentTableId = 0;
+    size_t countOfTables;
+    int currentTableId;
 };
