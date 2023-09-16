@@ -18,23 +18,20 @@ namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = boost::asio::ip::tcp;
 
-
-//#include <msi.h>
-// And just to make things link:
-//#pragma comment(lib, "msi.lib")
+const std::string port_const = "7777";
+const std::string ip_address_const = "127.0.0.1";
 
 int main(int argc, char* argv[])
 {
     Database database_;
     std::shared_ptr<Database> sptr_database_ = std::make_shared<Database>(database_);
     
-
     if (argc != 3)
     {
         argc = 3;
         argv[0] = (char*)"receiver";
-        argv[1] = (char*)"127.0.0.1";
-        argv[2] = (char*)"7777";
+        argv[1] = (char*)ip_address_const.c_str();
+        argv[2] = (char*)port_const.c_str();
     }
     try
     {
@@ -48,14 +45,14 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
-        auto const address = net::ip::make_address(argv[1]);
-        unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
+        auto const address = net::ip::make_address(ip_address_const); // auto const address = net::ip::make_address(argv[1]);
+        unsigned short port = static_cast<unsigned short>(std::atoi(port_const.c_str())); //unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
 
         net::io_context ioc{ 1 };
 
         tcp::acceptor acceptor{ ioc, {address, port} };
         tcp::socket socket{ ioc };
-        http_server(acceptor, socket, sptr_database_);
+        http_server(acceptor, socket, sptr_database_, ip_address_const ,port_const);
 
         ioc.run();
     }
@@ -65,5 +62,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
+
+
 
 
