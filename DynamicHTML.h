@@ -6,8 +6,7 @@
 #include <string>
 
 // HTML with vector<std::string> result
-std::string 
-    generateDynamicResponse(const std::vector<std::string>& data, const std::string & ip_address, const int & port)
+std::string generateDynamicResponse(const std::vector<std::string>& data, const std::string & ip_address, const int & port)
 {
     std::stringstream html;
     html << "<!DOCTYPE html>\n";
@@ -32,7 +31,7 @@ std::string
         html << "<table>\n";
         html << "<tr>\n";
 
-        // РЎРѕР·РґР°РµРј СЏС‡РµР№РєРё С‚Р°Р±Р»РёС†С‹ Рё Р·Р°РїРѕР»РЅСЏРµРј РёС… Р·РЅР°С‡РµРЅРёСЏРјРё РёР· РІРµРєС‚РѕСЂР°
+        // Создаем ячейки таблицы и заполняем их значениями из вектора
         for (const std::string& value : data) {
             html << "<td>" << value << "</td>\n";
         }
@@ -48,8 +47,7 @@ std::string
 }
 
 // HTML with result from Table
-std::string 
-    generateDynamicResponse(const Table& table, const std::string& ip_address, const int& port)
+std::string generateDynamicResponse(const Table& table, const std::string& ip_address, const int& port)
 {
     if (!table.table.empty())
     {
