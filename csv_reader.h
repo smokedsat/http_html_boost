@@ -17,14 +17,21 @@ public:
     std::vector<std::string> column_names;
     std::vector<std::string> column_types;
     char DELIMETER = ';';
+    std::string table_filename;
 
-        Table(const std::string & filename)
+    Table
+    (const std::string& filename)
     {
         readCSV(filename);
     }
-    Table(){ }
+
+    Table() {}
 
 public:
+    void setTableFilename(const std::string& name)
+    {
+        table_filename = name;
+    }
     bool
         isEmpty()
     {
@@ -32,44 +39,52 @@ public:
     }
 
     void
-        setDelimeter(std::ifstream & csv_file)
-    {    
+        setDelimeter(std::ifstream& csv_file)
+    {
         char character = 'a';
-        while(csv_file.get(character))
+        while (csv_file.get(character))
+        {
+            if (character == ',')
             {
-                if(character == ',')
-                {   
-                    DELIMETER = ',';
-                    break;
-                }
-                if(character == ';')
-                {
-                    DELIMETER = ';';
-                    break;
-                }
+                DELIMETER = ',';
+                break;
             }
+            if (character == ';')
+            {
+                DELIMETER = ';';
+                break;
+            }
+        }
     }
 
     // Determinating column types and column names in table from file
-    void 
-        determineColumnTypesAndNames() 
+    void
+        determineColumnTypesAndNames()
     {
-        for (const auto& column_data : table) {
-            bool is_numeric = true;
-            for (const std::string& value : column_data) {
-                if (!isNumber(value)) {
-                    column_names.push_back(value);
-                    is_numeric = false;
-                    break;
+        if (isEmpty())
+        {
+            std::cout << "table is empty." << std::endl;
+            return;
+        }
+        else
+        {
+            for (const auto& column_data : table) {
+                bool is_numeric = true;
+                for (const std::string& value : column_data) {
+                    if (!isNumber(value)) {
+                        column_names.push_back(value);
+                        is_numeric = false;
+                        break;
+                    }
                 }
+                column_types.push_back(is_numeric ? "numeric" : "text");
             }
-            column_types.push_back(is_numeric ? "numeric" : "text");
         }
     }
 
     // Printing table to the console
-    void 
-        printTable() 
+    void
+        printTable()
     {
         if (!isEmpty()) {
             size_t numRows = table[0].size();
@@ -93,23 +108,22 @@ public:
     }
 
     // Reading CSV file
-    void 
-        readCSV(const std::string& filename) 
+    void
+        readCSV(const std::string& filename)
     {
-
         std::ifstream csv_file(filename);
 
         if (!csv_file.is_open()) {
             std::cout << "File is not opened." << std::endl;
             return; // REturn if isnt opened
         }
-        
+
         setDelimeter(csv_file);
         csv_file.seekg(0, std::ios::beg);
-        
+
         std::string header;
         std::getline(csv_file, header);
-        
+
         std::istringstream header_stream(header);
         std::string column_name;
 
@@ -136,20 +150,23 @@ public:
         }
         csv_file.close();
 
-        determineColumnTypesAndNames(); 
+        determineColumnTypesAndNames();
     }
 
     // Clearing table
-    void 
-        clearTable() 
+    void
+        clearTable()
     {
-        table.clear();
-        column_names.clear();
-        column_types.clear();
+        if (!isEmpty())
+        {
+            table.clear();
+            column_names.clear();
+            column_types.clear();
+        }
     }
 
-    std::vector<std::string> 
-        getColumnNames() const 
+    std::vector<std::string>
+        getColumnNames() const
     {
         if (!column_names.empty())
         {
@@ -161,8 +178,8 @@ public:
         }
     }
 
-    std::vector<std::string> 
-        getColumnTypes() const 
+    std::vector<std::string>
+        getColumnTypes() const
     {
         if (!column_types.empty())
         {
@@ -175,21 +192,23 @@ public:
     }
 
     // Getting columns/rows with name
-    std::vector<std::string> 
+    std::vector<std::string>
         getColumnsWithName(const std::string& name)
     {
         std::vector<std::string> results;
-    
-    
-        for (int i = 0; i < table[0].size(); i++)
+
+        if (!isEmpty())
         {
-            if (!table[i][0].compare(name))
+            for (int i = 0; i < table[0].size() - 1; i++)
             {
-                for (int j = 1; j < table[i].size(); j++)
+                if (!table[i][0].compare(name))
                 {
-                    results.push_back(table[i][j]);
+                    for (int j = 1; j < table[i].size(); j++)
+                    {
+                        results.push_back(table[i][j]);
+                    }
+                    return results;
                 }
-                return results;
             }
         }
         return results;
@@ -197,8 +216,8 @@ public:
 
 private:
 
-    bool 
-        isNumber(const std::string& s) 
+    bool
+        isNumber(const std::string& s)
     {
         std::istringstream iss(s);
         double number;

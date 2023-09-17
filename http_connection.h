@@ -115,7 +115,7 @@ private:
             {
                 if (sptr_database->tables.empty())
                 {
-                    // РЎРѕР·РґР°РµРј HTTP-РѕС‚РІРµС‚
+                    // Создаем HTTP-ответ
                     response_.result(http::status::ok);
                     response_.set(http::field::server, "Get request");
                     response_.prepare_payload();
@@ -127,7 +127,7 @@ private:
                 {
                     if (request_.target().size() > 5)
                     {
-                        // РџРѕР»СѓС‡Р°РµРј РїРѕР»РЅС‹Р№ РїСѓС‚СЊ РёР· URI Р·Р°РїСЂРѕСЃР°
+                        // Получаем полный путь из URI запроса
                         std::string target = request_.target().substr(5);
 
                         int number = std::stoi(target);
@@ -148,7 +148,7 @@ private:
                         }
                     }
                 }
-                // РЎРѕР·РґР°РµРј HTTP-РѕС‚РІРµС‚
+                // Создаем HTTP-ответ
                 response_.result(http::status::ok);
                 response_.set(http::field::server, "Get request");
                 response_.prepare_payload();
@@ -158,7 +158,7 @@ private:
             {
                 if (sptr_database->tables.empty())
                 {
-                    // РЎРѕР·РґР°РµРј HTTP-РѕС‚РІРµС‚
+                    // Создаем HTTP-ответ
                     response_.result(http::status::ok);
                     response_.set(http::field::server, "Get request");
                     response_.prepare_payload();
@@ -170,25 +170,25 @@ private:
                 {
                     if (request_.target().size() > 8)
                     {
-                        // РџРѕР»СѓС‡Р°РµРј РїРѕР»РЅС‹Р№ РїСѓС‚СЊ РёР· URI Р·Р°РїСЂРѕСЃР°
+                        // Получаем полный путь из URI запроса
                         std::string target_path = request_.target().substr(8);
 
-                        // РС‰РµРј РїР°СЂР°РјРµС‚СЂ column_name РІ URL-Р°РґСЂРµСЃРµ
+                        // Ищем параметр column_name в URL-адресе
                         size_t param_pos = target_path.find("column_name=");
 
                         if (param_pos != std::string::npos)
                         {
-                            // РќР°Р№РґРµРЅ РїР°СЂР°РјРµС‚СЂ column_name, РёР·РІР»РµРєР°РµРј РµРіРѕ Р·РЅР°С‡РµРЅРёРµ
+                            // Найден параметр column_name, извлекаем его значение
                             size_t value_start = param_pos + strlen("column_name=");
                             size_t value_end = target_path.find("=", value_start);
                             std::string column_name_value = target_path.substr(value_start, value_end - value_start);
 
-                            // Р’С‹РїРѕР»РЅСЏРµРј РїРѕРёСЃРє РїРѕ Р·РЅР°С‡РµРЅРёСЋ column_name_value
+                            // Выполняем поиск по значению column_name_value
                             sptr_database->results = sptr_database->tables[sptr_database->currentTableId].getColumnsWithName(column_name_value);
                         }
                     }
                 }
-                // РЎРѕР·РґР°РµРј HTTP-РѕС‚РІРµС‚
+                // Создаем HTTP-ответ
                 response_.result(http::status::ok);
                 response_.set(http::field::server, "Get request");
                 response_.prepare_payload();
@@ -263,6 +263,7 @@ private:
             response_.set(http::field::server, "Get request");
             response_.set(http::field::content_type, "text/html");
             beast::ostream(response_.body())
+                << "<!DOCTYPE html>\n" // this is new remove
                 << "<html>\n"
                 << "<head><title>Main Page</title></head>\n"
                 << "<body>\n"
@@ -286,7 +287,7 @@ private:
                 // Button showtable
                 beast::ostream(response_.body())
                     << "<form action=\"http://127.0.0.1:" << std::to_string(PORT)
-                    << "/showtable/\" method=\"get\">\n" // РСЃРїРѕР»СЊР·СѓРµРј РјРµС‚РѕРґ GET
+                    << "/showtable/\" method=\"get\">\n" // Используем метод GET
                     << "<li><b>Enter Table Number:   </b> <input type=\"number\" name=\"tableNumber\">\n"
                     << "    <input type=\"submit\" value=\"Show Table\"></li>\n"
                     << "</form>\n";
@@ -327,6 +328,7 @@ private:
         {
             response_.set(http::field::content_type, "text/html");
             beast::ostream(response_.body())
+                << "<!DOCTYPE html>\n" // this is new remove
                 << "<html>\n"
                 << "<head>\n"
                 << "<title> File Upload </title> \n"
@@ -338,6 +340,7 @@ private:
                 << std::to_string(PORT);
 
             beast::ostream(response_.body())
+                //<< "<!DOCTYPE html>\n" // this is new remove
                 << "/upload\" method=\"post\" enctype=\"multipart/form-data\">\n"
                 << "<input type=\"file\" name=\"upload-file\">\n"
                 << "<input type=\"submit\" value=\"Upload\">\n"
@@ -392,14 +395,14 @@ private:
                 else
                 {
                     sptr_database->currentTableId = 0;
-                    // РР·РјРµРЅРёС‚СЊ РЅР° generateDynamicEmptyResponse(std::string & resp)
+                    // Изменить на generateDynamicEmptyResponse(std::string & resp)
                     beast::ostream(response_.body()) << "Table with that number was not found.\n";
                 }
             }
             else
             {
                 response_.set(http::field::content_type, "text/html");
-                // РР·РјРµРЅРёС‚СЊ РЅР° generateDynamicEmptyTableResponse(std::string & resp
+                // Изменить на generateDynamicEmptyTableResponse(std::string & resp
                 beast::ostream(response_.body()) << "tables is empty. Cant show any data with /showtable. \n";
             }
         }
