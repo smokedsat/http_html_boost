@@ -1,4 +1,4 @@
-#include "http_connection.h"
+#include "http_connection.hpp"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -13,6 +13,7 @@ namespace target_http
     const char * upload = "/upload";
     const char * showtable = "/showtable";
 };
+
 
 void 
     http_server(tcp::acceptor& acceptor, tcp::socket& socket, std::shared_ptr<Database>& sptr_database, const std::string & ip_address ,const std::string & port)
@@ -60,7 +61,6 @@ void
     http_connection::write_response()
 {
     auto self = shared_from_this();
-
     response_.content_length(response_.body().size());
 
     http::async_write(
@@ -99,6 +99,7 @@ void
     case http::verb::get:
         if (request_.target().find(target_http::main) == 0)
         {
+            std::cout << "Entered to get::main" << std::endl;
             response_.result(http::status::ok);
             response_.set(http::field::server, "Get request");
             response_.prepare_payload();
@@ -106,6 +107,7 @@ void
         }
         else if (request_.target().find(target_http::set) == 0)
         {
+            std::cout << "Entered to get::set" << std::endl;
             if (sptr_database->tables.empty())
             {
                 // Создаем HTTP-ответ
@@ -151,6 +153,7 @@ void
         }
         else if (request_.target().find(target_http::search) == 0)
         {
+            std::cout << "Entered to get::search" << std::endl;
             if (sptr_database->tables.empty())
             {
                 // Создаем HTTP-ответ
@@ -191,9 +194,42 @@ void
         }
         else if (request_.target().find(target_http::showtable) == 0)
         {
+            std::cout << "Entered to get::showtable" << std::endl;
             response_.result(http::status::ok);
             response_.set(http::field::server, "Get request");
 
+            response_.prepare_payload();
+            create_response();
+        }
+        if (request_.target().find(target_http::upload) == 0)
+        {
+            std::cout << "Entered to get::upload" << std::endl;
+            std::string file_data = beast::buffers_to_string(request_.body().data());
+
+            std::cout << "body of upload: " << file_data << std::endl;
+
+            const std::string filename = "uploaded_file_" + std::to_string(sptr_database->countOfTables) + ".csv";
+
+            std::ofstream outfile(filename);
+            outfile << file_data;
+            outfile.close();
+
+            lines_eraser(filename);
+            std::string newfilename = "clear_" + filename;
+            sptr_database->curr_table.readCSV(newfilename);
+            sptr_database->curr_table.setTableFilename(filename);
+            sptr_database->tables.emplace_back(sptr_database->curr_table);
+            // start
+            std::cout << newfilename << std::endl;
+            sptr_database->curr_table.printTable();
+            // end
+            sptr_database->curr_table.clearTable();
+
+            sptr_database->countOfTables = sptr_database->tables.size();
+
+            response_.result(http::status::ok);
+            response_.set(http::field::server, "Post request");
+            beast::ostream(response_.body()) << "File was successfully uploaded.\n" << "Count of loaded files: " << sptr_database->tables.size() << "\n";
             response_.prepare_payload();
             create_response();
         }
@@ -208,7 +244,10 @@ void
     case http::verb::post:
         if (request_.target().find(target_http::upload) == 0)
         {
+            std::cout << "Entered to post::upload" << std::endl;
             std::string file_data = beast::buffers_to_string(request_.body().data());
+
+            std::cout << "body of upload: " << file_data << std::endl;
 
             const std::string filename = "uploaded_file_" + std::to_string(sptr_database->countOfTables) + ".csv";
 
@@ -221,6 +260,10 @@ void
             sptr_database->curr_table.readCSV(newfilename);
             sptr_database->curr_table.setTableFilename(filename);
             sptr_database->tables.emplace_back(sptr_database->curr_table);
+            // start
+            std::cout << newfilename << std::endl;
+            sptr_database->curr_table.printTable();
+            // end
             sptr_database->curr_table.clearTable();
 
             sptr_database->countOfTables = sptr_database->tables.size();
@@ -233,6 +276,7 @@ void
         }
         else
         {
+            std::cout << "Entered to post::bad_request" << std::endl;
             response_.result(http::status::bad_request);
             response_.set(http::field::content_type, "text/plain");
             beast::ostream(response_.body()) << "No file data found in the request\r\n";
@@ -266,6 +310,7 @@ void
             << "<p>Welcome to the main page. Choose an action:</p>\n"
             << "<ul>\n"
             << "<li><a href=\"/upload\">Upload a file</a></li>\n";
+            
         if (!sptr_database->tables.empty())
         {
             for (size_t count = 0; count < sptr_database->countOfTables; count++)
@@ -339,7 +384,7 @@ void
             << "<p> <a href=\"/main\">Return to Main Page</a></p>\n"
             << "<form action=\"http://" << IP_ADDRESS << ":" << PORT
             << "/upload\" method=\"post\" enctype=\"multipart/form-data\">\n"
-            << "<input type=\"file\" name=\"upload-file\">\n"
+            << "<input type=\"file\" name=\"uploaded-file\">\n"
             << "<input type=\"submit\" value=\"Upload\">\n"
             << "</form>\n"
             << "</body>\n"

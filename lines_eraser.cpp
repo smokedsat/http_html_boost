@@ -1,4 +1,4 @@
-#include "lines_eraser.h"
+#include "lines_eraser.hpp"
 
 void lines_eraser(const std::string& filename)
 {

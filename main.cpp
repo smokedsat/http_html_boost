@@ -10,8 +10,8 @@
 #include <vector>
 #include <fstream>
 
-#include "database.h"
-#include "http_connection.h"
+#include "database.hpp"
+#include "http_connection.hpp"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
         auto const address = net::ip::make_address(ip_address_const); // auto const address = net::ip::make_address(argv[1]);
         unsigned short port = static_cast<unsigned short>(std::atoi(port_const.c_str())); //unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
 
-        net::io_context ioc{ 1 };
+        net::io_context ioc{ 0 };
 
         tcp::acceptor acceptor{ ioc, {address, port} };
         tcp::socket socket{ ioc };
@@ -62,7 +62,5 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
-
-
 
 

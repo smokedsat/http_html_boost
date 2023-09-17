@@ -1,4 +1,4 @@
-#include "DynamicHTML.h"
+#include "DynamicHTML.hpp"
 
 // HTML with vector<std::string> result
 std::string 

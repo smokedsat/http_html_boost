@@ -1,0 +1,2 @@
+g++ main.cpp csv_reader.cpp database.cpp DynamicHTML.cpp http_connection.cpp lines_eraser.cpp -o ваш_исполняемый_файл -I/путь/к/каталогу/с/заголовками/boost -L/путь/к/каталогу/с/библиотеками/boost -lboost_filesystem -lboost_system
+g++ main.cpp csv_reader.cpp database.cpp DynamicHTML.cpp http_connection.cpp lines_eraser.cpp -o http_server -lboost_filesystem -lboost_system
