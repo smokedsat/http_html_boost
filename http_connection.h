@@ -450,8 +450,9 @@ std::cout << "write_response()." << std::endl;
             beast::ostream(response_.body())
                 << "</body>\n"
                 << "</html>\n";
-
+#ifdef __linux__
             request_.target().clear();
+#endif
         }
         else if (request_.target().find("/upload") == 0)
         {
@@ -478,7 +479,9 @@ std::cout << "create_response /upload." << std::endl;
                 << "</body>\n"
                 << "</html>\n";
 
+#ifdef __linux__
             request_.target().clear();
+#endif        
         }
         else if (request_.target().find("/search") == 0)
         {
@@ -498,7 +501,9 @@ std::cout << "create_response /search." << std::endl;
                 beast::ostream(response_.body()) << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
             }
 
+#ifdef __linux__
             request_.target().clear();
+#endif        
         }
         else if (request_.target().find("/showtable") == 0)
         {
@@ -573,7 +578,9 @@ std::string target_path = request_.target().substr(8);
                 beast::ostream(response_.body()) << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
             }
 
+#ifdef __linux__
             request_.target().clear();
+#endif        
         }
         else if (request_.target().find("/set") == 0)
         {
@@ -611,7 +618,9 @@ std::cout << "create_response empty." << std::endl;
             response_.set(http::field::content_type, "text/html");
             beast::ostream(response_.body()) << "Empty response. Please chose right option.\n";
             beast::ostream(response_.body()) << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
+#ifdef __linux__
             request_.target().clear();
+#endif
         }
     }
 
