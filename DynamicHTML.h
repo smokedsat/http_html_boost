@@ -8,6 +8,7 @@
 // HTML with vector<std::string> result
 std::string generateDynamicResponse(const std::vector<std::string>& data, const std::string & ip_address, const int & port)
 {
+    std::cout << "generateDynamicResponse function with std::vector<std::string>, std::string,  int" << std::endl;
     std::stringstream html;
     html << "<!DOCTYPE html>\n";
     html << "<html>\n";
@@ -16,13 +17,10 @@ std::string generateDynamicResponse(const std::vector<std::string>& data, const 
     html << "</head>\n";
     html << "<body>\n";
     html << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
-    html << "<form action=\"http://";
-    html << ip_address;
-    html << ":";
-    html << std::to_string(port);
-    html << "\">";
+    
     if (data.empty())
     {
+        std::cout << "data is empty. " << std::endl;
         html << "<h1>Nothing to show</h1>\n";
     }
     else
@@ -31,7 +29,7 @@ std::string generateDynamicResponse(const std::vector<std::string>& data, const 
         html << "<table>\n";
         html << "<tr>\n";
 
-        // Создаем ячейки таблицы и заполняем их значениями из вектора
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         for (const std::string& value : data) {
             html << "<td>" << value << "</td>\n";
         }
@@ -49,6 +47,7 @@ std::string generateDynamicResponse(const std::vector<std::string>& data, const 
 // HTML with result from Table
 std::string generateDynamicResponse(const Table& table, const std::string& ip_address, const int& port)
 {
+    std::cout << "generateDynamicResponse function with Table, std::string, int" << std::endl;
     if (!table.table.empty())
     {
         std::stringstream html;
@@ -75,7 +74,7 @@ std::string generateDynamicResponse(const Table& table, const std::string& ip_ad
 
         for (const auto& rows : table.table) {
             html << "        <tr>\n";
-            for (auto i = 0; i < rows.size() - 1; i++) {
+            for (auto i = 0; i <= rows.size() - 1; i++) {
                 if (!rows[i].empty() && (i != 0))
                 {
                     html << "            <td>" << rows[i] << "</td>\n";
@@ -94,11 +93,11 @@ std::string generateDynamicResponse(const Table& table, const std::string& ip_ad
 
         html << "    </table>\n";
         html << "<p><strong> <a href=\"/main\">Return to Main Page</a></strong></p>\n";
-        html << "<form action=\"http://";
-        html << ip_address;
-        html << ":";
-        html << std::to_string(port);
-        html << "\">";
+        // html << "<form action=\"http://";
+        // html << ip_address;
+        // html << ":";
+        // html << std::to_string(port);
+        // html << "\">";
         html << "</body>\n";
         html << "</html>\n";
 
