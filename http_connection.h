@@ -144,7 +144,7 @@ private:
                     #endif /* DEBUG_INFORMATION */
                 if (sptr_database->tables.empty())
                 {
-                    // ������� HTTP-�����
+                    // default empty html resp. may be changed to http::status::error ...etc
                     response_.result(http::status::ok);
                     response_.set(http::field::server, "Get request");
                     response_.prepare_payload();
@@ -156,7 +156,6 @@ private:
                 {
                     if (request_.target().size() > 5)
                     {
-                        // �������� ������ ���� �� URI �������
                         #ifdef __linux__
                         std::string target = request_.target().substr(5).to_string();
                         #elif defined(_WIN32) || defined(_WIN64)
@@ -178,7 +177,6 @@ private:
                         }
                     }
                 }
-                // ������� HTTP-�����
                 response_.result(http::status::ok);
                 response_.set(http::field::server, "Get request");
                 response_.prepare_payload();
@@ -191,7 +189,6 @@ private:
                     #endif /* DEBUG_INFORMATION */
                 if (sptr_database->tables.empty())
                 {
-                    // ������� HTTP-�����
                     response_.result(http::status::ok);
                     response_.set(http::field::server, "Get request");
                     response_.prepare_payload();
@@ -203,7 +200,6 @@ private:
                 {
                     if (request_.target().size() > 8)
                     {
-                        // �������� ������ ���� �� URI �������
                         #ifdef __linux__
                         std::string target_path = request_.target().substr(8).to_string();
                                 #ifdef DEBUG_INFORMATION
@@ -249,7 +245,6 @@ private:
                         }
                     }
                 }
-                // ������� HTTP-�����
                 response_.result(http::status::ok);
                 response_.set(http::field::server, "Get request");
                 response_.prepare_payload();
@@ -317,8 +312,8 @@ private:
 // #ifdef DEBUG_INFORMATION
 // std::cout << "curr_table.setTableFilename: " << filename << std::endl;
 // #endif /* DEBUG_INFORMATION */
-                
 //                 sptr_database->curr_table.setTableFilename(filename);
+
                     #ifdef DEBUG_INFORMATION
                         std::cout << "tables.emplace_back(sptr_database->curr_table)" << std::endl;
                     #endif /* DEBUG_INFORMATION */
@@ -522,7 +517,7 @@ private:
                 size_t value_start = target_path.find("tableNumber=") + strlen("tableNumber=");
                 size_t value_end = target_path.find("&", value_start);
                 if (value_end == std::string::npos) {
-                    // Если символ '&' не найден, значит, это последний параметр
+                    // if symb & not found,then is last param
                     value_end = target_path.length();
                 }
 
